@@ -1,31 +1,27 @@
 import sys
 import time
 import random
+from xml.etree.ElementTree import tostring
+
 from udp_modulu import UDPComm
+import socket
 
-# Giriş argümanı: 0 = ilk gönderen, 1 = ilk alıcı
-if len(sys.argv) != 2 or sys.argv[1] not in ("0", "1"):
-    print("Kullanim: python main.py [0|1]")
-    sys.exit(1)
+def get_local_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+        return local_ip
+    except Exception as e:
+        return f"Err: {e}"
 
-is_sender = sys.argv[1] == "0"
+print("Yerel IP Adresi:", get_local_ip())
 
-# Port ayarları
-MY_PORT = 12345 if is_sender else 12346
-PEER_PORT = 12346 if is_sender else 12345
-IP = "127.0.0.1"
+IP = tostring(get_local_ip())
 
 # UDP iletişim nesnesi başlat
-udp = UDPComm(is_server=True, ip=IP, port=MY_PORT)
-
-# Peer adresi (önceden bildiğimiz için sabit)
-peer_addr = (IP, PEER_PORT)
-
-# Gönder fonksiyonu
-def send_random():
-    num = random.randint(1, 100)
-    print(f"[SEND] Sayı gönderiliyor: {num}")
-    udp.send(f"SAYI:{num}", peer_addr)
+udp = UDPComm( ip=IP, port=12345)
 
 # Alma fonksiyonu
 def receive_number():
@@ -36,14 +32,3 @@ def receive_number():
     else:
         print("[RECV] Zaman aşımı, tekrar dene...")
         return False
-
-# Eğer ilk gönderen isek başla
-if is_sender:
-    time.sleep(1)
-    send_random()
-
-# Sürekli sırayla al/gönder yap
-while True:
-    if receive_number():
-        time.sleep(1)
-        send_random()
