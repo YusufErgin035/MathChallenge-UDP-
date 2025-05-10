@@ -9,7 +9,7 @@ def main():
     def handle_incoming(message, addr):
         print(f"\n[{addr[0]}:{addr[1]}]: {message}")
 
-    conn = UDPConnection(local_ip, local_port, handle_incoming)
+    conn = UDPConnection(on_message=handle_incoming, local_ip=local_ip, local_port=local_port)
     conn.start()
 
     print("\nYou can start writing messages (type 'exit' to exit):")

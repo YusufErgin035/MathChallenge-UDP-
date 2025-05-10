@@ -2,7 +2,7 @@ import socket
 import threading
 
 class UDPConnection:
-    def __init__(self, local_ip, local_port, on_message):
+    def __init__(self, on_message, local_ip="0.0.0.0", local_port=12345):
         self.local_ip = local_ip
         self.local_port = local_port
         self.on_message = on_message
