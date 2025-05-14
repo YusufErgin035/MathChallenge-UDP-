@@ -1,19 +1,16 @@
-from src.core import Core
-
+from src.question import question
 def main():
-    number1 = random.randint(0, 9)
-    number2 = random.randint(0, 9)
+    for i in range(1,4):
+        dogru_cevap = question(i)
+        try:
+            kullanici_cevabi = int(input())
 
-    answer = input(f"{number1} + {number2} = ? ")
-
-    try:
-        answer = int(answer)
-        if answer == number1 + number2:
-            print("Correct!")
-        else:
-            print(f"Incorrect! Correct answer: {number1 + number2}")
-    except ValueError:
-        print("Please enter a valid number.")
+            if kullanici_cevabi == dogru_cevap:
+                print("✅ Doğru cevap!")
+            else:
+                print(f"❌ Yanlış cevap. Doğru cevap: {dogru_cevap}")
+        except ValueError:
+            print("⚠️ Lütfen sadece sayı girin!")
 
 if __name__ == "__main__":
     main()
