@@ -87,10 +87,10 @@ class MathHurdleApp(ctk.CTk):
         threading.Thread(target=self.connection_request).start()
 
     def connection_request(self):
-        time.sleep(5)
-        self.ask_for_acceptance()
-
-    def ask_for_acceptance(self, request_ip):
+        while True:
+            if self.conn.is_game_request:
+                print("Oyun isteği")
+                
         def on_accept():
             self.show_start_screen()
 
@@ -101,7 +101,7 @@ class MathHurdleApp(ctk.CTk):
         if response == "yes":
             self.after(100, on_accept)
         else:
-            self.after(100, on_reject)
+            self.after(100, on_reject) 
 
     def enter_ip_screen(self):
         self.clear_widgets()
@@ -124,11 +124,8 @@ class MathHurdleApp(ctk.CTk):
             messagebox.showerror("Error", "Please enter a valid IP address.")
             return
 
-        self.core.send_areuactive(self.client_ip, self.port)
+        self.core.send_areuactive(self.client_ip)
 
-        self.waiting_screen()
-
-    def waiting_screen(self):
         self.clear_widgets()
 
         self.waiting_frame = ctk.CTkFrame(self)
@@ -138,14 +135,25 @@ class MathHurdleApp(ctk.CTk):
         label.place(relx=0.5, rely=0.5, anchor="center")
 
         # 💬 PLACEHOLDER: After receiving "Accepted" from other side, call:
-        threading.Thread(target=self.simulate_wait_and_proceed).start()
+        threading.Thread(target=self.client_simulate_wait_and_proceed).start() 
 
-    def simulate_wait_and_proceed(self):
+    def server_simulate_wait_and_proceed(self):
         while True:
             if self.core.is_active:
                 break
 
-        self.show_start_screen()
+    def client_simulate_wait_and_proceed(self):
+        while True:
+            if self.core.is_active:
+                break
+
+        self.conn.send_game_request()
+
+        while True:
+            if self.core.is_game_request:
+                break
+
+        print("Oyun başladı")
 
     def show_start_screen(self):
         self.clear_widgets()

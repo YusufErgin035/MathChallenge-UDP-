@@ -12,17 +12,20 @@ import random
 class Core:
     def __init__(self):
         self.is_active = False
+        self.target_port=12345
+        self.is_connect = False
+        self.conn = UDPConnection(on_message=self.handle_incoming, local_ip="0.0.0.0", local_port=12345)
 
     def set_target(self, target_ip, target_port=12345, target_name=""):
         self.target_ip = target_ip
         self.target_port = target_port
         self.target_name = target_name
-
-    def start(self):
-        self.conn = UDPConnection(on_message=self.handle_incoming, local_ip="0.0.0.0", local_port=12345)
-        self.conn.start()
+        self.is_connect = True
 
     def handle_incoming(self, message, addr):
+        if not self.is_connect:
+            self.set_target(addr[0], 12345, "")
+            
         try: # json çözümleme
             data = json.loads(message)
             status_value = data.get("status", None)
@@ -36,7 +39,6 @@ class Core:
             elif status_value == 1 and func_value == 0:
                 self.is_active = True
             elif status_value == 1 and func_value == 1:
-                print(msg_value)
                 self.is_game_request = True
             else:
                 print(f"[{addr[0]}:{addr[1]}]: {data}")
@@ -46,9 +48,9 @@ class Core:
     def safe_random(self):
         return random.randint(10000, 99999)
     
-    def send_areuactive(self, target_ip, target_port):
+    def send_areuactive(self, target_ip):
         return_data = {"status": 0, "func": 0, "msg_id": self.safe_random()}
-        self.conn.send(target_ip, target_port, json.dumps(return_data))
+        self.conn.send(target_ip, self.target_port, json.dumps(return_data))
 
     def send_msg(self, msg):
         self.conn.send(self.target_ip, self.target_port, msg)

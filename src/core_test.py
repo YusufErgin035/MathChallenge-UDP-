@@ -6,7 +6,7 @@ def main():
     target_ip = input("Target IP: ")
     target_port = 12345
 
-    core = Core(target_ip)
+    core = Core()
 
     print("\nYou can start writing messages (type 'exit' to exit)(0 - send_areuactive)(1 - get_ip LOCAL):")
     while True:
@@ -15,7 +15,7 @@ def main():
             core.stop()
             break
         elif msg.lower() == "0":
-            core.send_areuactive()    
+            core.send_areuactive(target_ip)    
         elif msg.lower() == "1":
             print(core.get_ip())
         else:
