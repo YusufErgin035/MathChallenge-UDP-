@@ -88,9 +88,9 @@ class MathHurdleApp(ctk.CTk):
 
     def connection_request(self):
         while True:
-            if self.conn.is_game_request:
+            if self.core.is_game_request:
                 print("Oyun isteği")
-                
+
         def on_accept():
             self.show_start_screen()
 
@@ -147,7 +147,7 @@ class MathHurdleApp(ctk.CTk):
             if self.core.is_active:
                 break
 
-        self.conn.send_game_request()
+        self.core.send_game_request()
 
         while True:
             if self.core.is_game_request:

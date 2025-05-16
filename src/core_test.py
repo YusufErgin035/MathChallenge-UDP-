@@ -18,6 +18,9 @@ def main():
             core.send_areuactive(target_ip)    
         elif msg.lower() == "1":
             print(core.get_ip())
+        elif msg.lower() == "2":
+            core.set_target(target_ip)
+            core.send_game_request()
         else:
             core.send_msg(msg)
 
