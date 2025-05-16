@@ -8,14 +8,16 @@ def main():
 
     core = Core(target_ip)
 
-    print("\nYou can start writing messages (type 'exit' to exit)(0 - send_areuactive):")
+    print("\nYou can start writing messages (type 'exit' to exit)(0 - send_areuactive)(1 - get_ip LOCAL):")
     while True:
         msg = input("> ")
         if msg.lower() == "exit":
             core.stop()
             break
         elif msg.lower() == "0":
-            core.send_areuactive()
+            core.send_areuactive()    
+        elif msg.lower() == "1":
+            print(core.get_ip())
         else:
             core.send_msg(msg)
 

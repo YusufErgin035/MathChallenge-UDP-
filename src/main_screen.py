@@ -2,6 +2,7 @@ import customtkinter as ctk
 import socket
 import threading
 import time
+from core import Core
 from tkinter import messagebox
 
 # Setup theme
@@ -13,11 +14,12 @@ class MathHurdleApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("MathHurdle")
-        self.geometry("600x1320")
+        self.geometry("600x800")
         self.resizable(False, False)
         
         self.username = None
         self.client_ip = None  # For UDP partner
+        self.core = Core()
 
         self.show_intro_screen()
 
@@ -77,28 +79,25 @@ class MathHurdleApp(ctk.CTk):
         ip_text = ctk.CTkLabel(self.ip_frame, text="Your IP Address Is:", font=("Arial", 24))
         ip_text.pack(pady=(20, 10))
 
-        ip_addr = socket.gethostbyname(socket.gethostname())
+        # Core'dan ip çekmek
+        ip_addr = self.core.get_ip()
         ip_label = ctk.CTkLabel(self.ip_frame, text=ip_addr, font=("Arial", 24))
         ip_label.pack(pady=(0, 40))
 
-        # 💬 PLACEHOLDER: UDP code should listen for connection request here
-        # Simulate a request after 5 seconds (replace with real UDP receive logic)
-        threading.Thread(target=self.simulate_connection_request).start()
+        threading.Thread(target=self.connection_request).start()
 
-    def simulate_connection_request(self):
+    def connection_request(self):
         time.sleep(5)
         self.ask_for_acceptance()
 
-    def ask_for_acceptance(self):
+    def ask_for_acceptance(self, request_ip):
         def on_accept():
-            # 💬 Notify UDP teammate: connection accepted, proceed to sync
             self.show_start_screen()
 
         def on_reject():
-            # 💬 Notify UDP teammate: connection rejected
             self.show_main_menu()
 
-        response = messagebox.askquestion("Incoming Request", "Someone wants to play with you.\nDo you accept?")
+        response = messagebox.askquestion("Incoming Request", f"{request_ip} wants to play with you.\nDo you accept?")
         if response == "yes":
             self.after(100, on_accept)
         else:
@@ -125,8 +124,7 @@ class MathHurdleApp(ctk.CTk):
             messagebox.showerror("Error", "Please enter a valid IP address.")
             return
 
-        # 💬 PLACEHOLDER: Send connection request via UDP to IP
-        # Notify UDP teammate to send request
+        self.core.send_areuactive(self.client_ip, self.port)
 
         self.waiting_screen()
 
@@ -143,7 +141,10 @@ class MathHurdleApp(ctk.CTk):
         threading.Thread(target=self.simulate_wait_and_proceed).start()
 
     def simulate_wait_and_proceed(self):
-        time.sleep(5)  # simulate wait for "accept" message
+        while True:
+            if self.core.is_active:
+                break
+
         self.show_start_screen()
 
     def show_start_screen(self):
@@ -161,7 +162,6 @@ class MathHurdleApp(ctk.CTk):
     def clear_widgets(self):
         for widget in self.winfo_children():
             widget.destroy()
-
 
 # Run the app
 if __name__ == "__main__":
