@@ -135,10 +135,16 @@ class MathHurdleApp(ctk.CTk):
         while not self.core.is_game_request:
             pass
 
-        print("Oyun başladı")
+        while not self.core.is_game_accepted:
+            pass
+
+        # Oyun Bekleme Ekranına Atar
+        print("Oyun başlatılma bekleniyor")
 
     def show_start_screen(self):
         self.clear_widgets()
+
+        self.core.send_accept_game_request()
 
         start_frame = ctk.CTkFrame(self)
         start_frame.pack(fill="both", expand=True, padx=50, pady=50)

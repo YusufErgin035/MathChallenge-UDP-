@@ -9,8 +9,10 @@ class Core:
         self.target_port = 12345
         self.is_connect = False
         self.is_game_request = False
+        self.is_game_accepted = False
         self.on_game_request_callback = None  # 🔧 GUI callback
         self.conn = UDPConnection(on_message=self.handle_incoming, local_ip="0.0.0.0", local_port=12345)
+        self.conn.start()
 
     def set_target(self, target_ip, target_port=12345, target_name=""):
         self.target_ip = target_ip
@@ -19,6 +21,7 @@ class Core:
         self.is_connect = True
 
     def handle_incoming(self, message, addr):
+        print(addr, message)
         if not self.is_connect:
             self.set_target(addr[0], 12345, "")
 
@@ -50,6 +53,9 @@ class Core:
                 print("11 - handle")
                 self.is_game_request = True
 
+            elif status_value == 0 and func_value == 2:
+                print("02 - handle")
+                self.is_game_accepted = True
             else:
                 print(f"[{addr[0]}:{addr[1]}]: {data}")
         except:
@@ -64,6 +70,10 @@ class Core:
 
     def send_game_request(self):
         return_data = {"status": 0, "func": 1, "msg_id": self.safe_random()}
+        self.conn.send(self.target_ip, self.target_port, json.dumps(return_data))
+
+    def send_accept_game_request(self):
+        return_data = {"status": 0, "func": 2, "msg_id": self.safe_random()}
         self.conn.send(self.target_ip, self.target_port, json.dumps(return_data))
 
     def send_msg(self, msg):
