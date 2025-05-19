@@ -26,7 +26,7 @@ def notify_opponent_disconnected(core):
     core.conn.send(core.target_ip, core.target_port, json.dumps(data))
 
 class Game:
-    def __init__(self, root, player_name, is_server,core):
+    def __init__(self, root, player_name, is_server,core, on_exit_callback=None):
         self.root = root
         self.player_name = player_name
         self.is_server = is_server
@@ -42,6 +42,7 @@ class Game:
         self.core = core
         self.core.on_game_data_callback = self.receive_game_data
         self.core.on_notice_data_callback = self.receive_notice_data
+        self.on_exit_callback = on_exit_callback
 
         self.create_game_screen()
         self.show_countdown()
@@ -212,5 +213,7 @@ class Game:
         self.status_label.pack(pady=100)
 
         self.root.after(300, self.root.destroy)
+        if self.on_exit_callback:
+            self.on_exit_callback()
 
 

@@ -183,10 +183,15 @@ class MathHurdleApp(ctk.CTk):
         root.title("Math Hurdle - Game")
         root.geometry("600x800")
         root.configure(bg="black")
+        def on_game_close():
+            root.destroy()
+            self.after(100, self.show_main_menu)
 
-        game = Game(root, self.username, self.is_server, self.core)
+        game = Game(root, self.username, self.is_server, self.core, on_exit_callback=on_game_close)
         self.core.on_game_data_callback = game.receive_game_data
         self.core.on_notice_data_callback = game.receive_notice_data
+
+        root.protocol("WM_DELETE_WINDOW", on_game_close)
         root.mainloop()
 
     def clear_widgets(self):
