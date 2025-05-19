@@ -60,6 +60,13 @@ class Core:
             elif status_value == 0 and func_value == 3:
                 print("03 - handle")
                 self.is_game_started = True
+                msg = data.get("msg", {})
+                is_answer = msg.get("isAnswer")
+                question = msg.get("question")
+                answer = msg.get("answer")
+                print("Veri alındı:", is_answer, question, answer)
+                self.on_game_data_callback(is_answer, question, answer)
+
             else:
                 print(f"[{addr[0]}:{addr[1]}]: {data}")
         except:

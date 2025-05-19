@@ -6,6 +6,8 @@ from tkinter import messagebox
 from game import Game
 import tkinter as tk
 
+from src import game
+
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("green")
 
@@ -170,7 +172,8 @@ class MathHurdleApp(ctk.CTk):
         root.geometry("600x800")
         root.configure(bg="black")
 
-        Game(root, self.username, self.is_server)
+        game = Game(root, self.username, self.is_server, self.core)
+        self.core.on_game_data_callback = game.receive_game_data
         root.mainloop()
 
     def clear_widgets(self):

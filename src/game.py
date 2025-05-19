@@ -1,22 +1,24 @@
+import json
 import tkinter as tk
 import random
 import threading
 import time
 
-def send_question_to_other_player(question_data):
-    # TODO: UDP logic to send question to the other player
-    pass
+def send_data(core,question_data,isAnswer,answer):
+    data = {
+        "status": 0,
+        "func": 3,
+        "msg_id": random.randint(1000, 9999),
+        "msg": {
+            "isAnswer": isAnswer,
+            "question": question_data,
+            "answer": answer
+        }
+    }
+    core.conn.send(core.target_ip, core.target_port, json.dumps(data))
 
-def receive_question_from_other_player():
+def receive_data():
     # TODO: UDP logic to receive question from the other player
-    return None
-
-def send_answer_to_other_player(answer_data):
-    # TODO: UDP logic to send answer data to the other player
-    pass
-
-def receive_answer_from_other_player():
-    # TODO: UDP logic to receive answer data from the other player
     return None
 
 def notify_opponent_disconnected():
@@ -24,20 +26,32 @@ def notify_opponent_disconnected():
     pass
 
 class Game:
-    def __init__(self, root, player_name, is_server):
+    def __init__(self, root, player_name, is_server,core):
         self.root = root
         self.player_name = player_name
         self.is_server = is_server
         self.opponent_name = "Opponent"
         self.score = {"me": 0, "opponent": 0}
         self.current_question = 1
+        self.answer = None
+        self.question = None
         self.has_answered = False
         self.max_score = 5
         self.answer_buttons = []
         self.correct_answer = None
+        self.core = core
 
         self.create_game_screen()
         self.show_countdown()
+
+    def receive_game_data(self, is_answer, question, answer):
+        print("Karşıdan veri geldi:", is_answer, question, answer)
+        if is_answer:
+            self.handle_answer(answer,True)
+        else:
+            self.question = question
+            self.answer = answer
+            self.generate_question(self.is_server)
 
     def create_game_screen(self):
         self.clear_screen()
@@ -74,24 +88,40 @@ class Game:
             count_label.config(text=f"Question {self.current_question}")
             time.sleep(1)
             self.create_game_screen()
-            self.generate_question()
+            self.generate_question(self.is_server)
 
         threading.Thread(target=countdown).start()
 
-    def generate_question(self):
-        operands = [random.randint(1, 20) for _ in range(random.randint(3, 5))]
-        question = " + ".join(map(str, operands))
-        self.correct_answer = sum(operands)
-        self.question_label.config(text=question)
+    def generate_question(self,isHost):
+        if isHost:
+            processtime = random.randint(2, 4)
+            question = str(random.randint(1, 20))
+            for _ in range(processtime):
+                randprocs = random.randint(1, 3)
+                var = random.randint(1, 20)
+                match randprocs:
+                    case 1:
+                        question += f" + {var}"
+                    case 2:
+                        question += f" - {var}"
+                    case 3:
+                        question += f" * {var}"
+            self.correct_answer = eval(question)
+            self.question_label.config(text=question)
 
-        wrong_answers = set()
-        while len(wrong_answers) < 3:
-            wrong = self.correct_answer + random.choice([-10, -5, -2, 2, 5, 10])
-            if wrong != self.correct_answer:
-                wrong_answers.add(wrong)
+            wrong_answers = set()
+            while len(wrong_answers) < 3:
+                wrong = self.correct_answer + random.choice([-10, -5, -2, 2, 5, 10])
+                if wrong != self.correct_answer:
+                    wrong_answers.add(wrong)
 
-        options = list(wrong_answers) + [self.correct_answer]
-        random.shuffle(options)
+            options = list(wrong_answers) + [self.correct_answer]
+            random.shuffle(options)
+            send_data(self.core,question,False,options)
+        else:
+            self.correct_answer = eval(self.question)
+            options = list(self.answer)
+            random.shuffle(options)
 
         for btn in self.answer_buttons:
             btn.destroy()
@@ -106,23 +136,32 @@ class Game:
                 bg="#444",
                 fg="white",
                 font=("Helvetica", 16),
-                command=lambda val=option: self.handle_answer(val)
+                command=lambda val=option: self.handle_answer(val,False)
             )
             btn.grid(row=i//2, column=i%2, padx=10, pady=10)
             self.answer_buttons.append(btn)
 
-    def handle_answer(self, selected_answer):
+    def handle_answer(self, selected_answer,isOpponent):
         if self.has_answered:
             return
         self.has_answered = True
 
-        if selected_answer == self.correct_answer:
-            self.score["me"] += 1
-            self.announce_result(f"{self.player_name} has given the correct answer.")
+        if not isOpponent:
+            if selected_answer == self.correct_answer:
+                self.score["me"] += 1
+                self.announce_result(f"{self.player_name} has given the correct answer.")
+                send_data(self.core, None, True, selected_answer)
+            else:
+                self.score["opponent"] += 1
+                self.announce_result(f"{self.player_name} has given a wrong answer.")
+                send_data(self.core, None, True, selected_answer)
         else:
-            self.score["opponent"] += 1
-            self.announce_result(f"{self.player_name} has given a wrong answer.")
-
+            if selected_answer == self.correct_answer:
+                self.score["opponent"] += 1
+                self.announce_result(f"{self.opponent_name} has given the correct answer.")
+            else:
+                self.score["me"] += 1
+                self.announce_result(f"{self.opponent_name} has given the wrong answer.")
         self.update_score()
 
         if self.score["me"] == self.max_score:
@@ -160,3 +199,4 @@ class Game:
         notify_opponent_disconnected()
         label = tk.Label(self.root, text="Opponent has left. You win!", fg="white", bg="black", font=("Helvetica", 24))
         label.pack(pady=100)
+
