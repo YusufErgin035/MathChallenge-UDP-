@@ -11,7 +11,7 @@ class Core:
         self.is_game_request = False
         self.is_game_accepted = False
         self.is_game_started = False
-        self.on_game_request_callback = None  # 🔧 GUI callback
+        self.on_game_request_callback = None
         self.conn = UDPConnection(on_message=self.handle_incoming, local_ip="0.0.0.0", local_port=12345)
         self.conn.start()
 
