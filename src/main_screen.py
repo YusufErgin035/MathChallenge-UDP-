@@ -181,7 +181,7 @@ class MathHurdleApp(ctk.CTk):
 
         root = tk.Tk()
         root.title("Math Hurdle - Game")
-        root.geometry("600x800")
+        root.geometry("600x1000")
         root.configure(bg="black")
         def on_game_close():
             root.destroy()
