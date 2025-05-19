@@ -1,9 +1,9 @@
 import customtkinter as ctk
 import socket
 import threading
-from core import Core
+from src.core import Core
 from tkinter import messagebox
-from game import Game
+from src.game import Game
 import tkinter as tk
 
 from src import game
@@ -189,8 +189,3 @@ class MathHurdleApp(ctk.CTk):
     def clear_widgets(self):
         for widget in self.winfo_children():
             widget.destroy()
-
-
-if __name__ == "__main__":
-    app = MathHurdleApp()
-    app.mainloop()
