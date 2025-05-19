@@ -17,16 +17,17 @@ def send_data(core,question_data,isAnswer,answer):
     }
     core.conn.send(core.target_ip, core.target_port, json.dumps(data))
 
-def receive_data():
-    # TODO: UDP logic to receive question from the other player
-    return None
-
-def notify_opponent_disconnected():
-    # TODO: Handle opponent disconnecting from the game
-    pass
+def notify_opponent_disconnected(core):
+    data = {
+        "status": -1,
+        "func": -1,
+        "msg_id": -1,
+    }
+    core.conn.send(core.target_ip, core.target_port, json.dumps(data))
 
 class Game:
     def __init__(self, root, player_name, is_server,core):
+        self.receive_notice_data = self.receive_notice_data
         self.root = root
         self.player_name = player_name
         self.is_server = is_server
@@ -42,8 +43,13 @@ class Game:
         self.core = core
         self.core.on_game_data_callback = self.receive_game_data
 
+        self.root.protocol("WM_DELETE_WINDOW", self.exit_game())
         self.create_game_screen()
         self.show_countdown()
+
+    def receive_notice_data(self, core):
+        print("Rakip oyundan çıktı..")
+        self.force_to_exit()
 
     def receive_game_data(self, is_answer, question, answer):
         print("Karşıdan veri geldi:", is_answer, question, answer)
@@ -188,9 +194,16 @@ class Game:
         final = tk.Label(self.root, text=f"{self.player_name} has won." if result == "Victory" else f"{self.opponent_name} has won.", fg="white", bg="black", font=("Helvetica", 20))
         final.pack(pady=20)
 
-    def exit_game(self):
+    def force_to_exit(self):
         self.clear_screen()
-        notify_opponent_disconnected()
         label = tk.Label(self.root, text="Opponent has left. You win!", fg="white", bg="black", font=("Helvetica", 24))
         label.pack(pady=100)
+        self.exit_button = tk.Button(self.root, text="Exit Game", bg="red", fg="white", font=("Helvetica", 14),command=self.root.destroy)
+        self.exit_button.pack(pady=30)
+
+    def exit_game(self):
+        self.clear_screen()
+        notify_opponent_disconnected(self.core)
+        self.root.destroy()
+
 

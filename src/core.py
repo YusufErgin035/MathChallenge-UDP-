@@ -67,6 +67,9 @@ class Core:
                 print("Veri alındı:", is_answer, question, answer)
                 if self.on_game_data_callback:
                     self.on_game_data_callback(is_answer, question, answer)
+            elif status_value == -1 and func_value == -1:
+                print("Opponent leaving")
+
             else:
                 print(f"[{addr[0]}:{addr[1]}]: {data}")
         except:

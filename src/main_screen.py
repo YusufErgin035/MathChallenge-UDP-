@@ -24,7 +24,7 @@ class MathHurdleApp(ctk.CTk):
         self.client_ip = None
         self.is_server = None
         self.core = Core()
-        self.core.on_game_request_callback = self.handle_game_request  # 🔗 Bağlantı kuruldu
+        self.core.on_game_request_callback = self.handle_game_request
 
         self.show_intro_screen()
 
@@ -87,7 +87,10 @@ class MathHurdleApp(ctk.CTk):
 
         ip_addr = self.core.get_ip()
         ip_label = ctk.CTkLabel(ip_frame, text=ip_addr, font=("Arial", 24))
-        ip_label.pack(pady=(0, 40))
+        ip_label.pack(pady=(0, 30))
+
+        go_back_btn = ctk.CTkButton(ip_frame, text="Go Back", command=self.show_main_menu)
+        go_back_btn.pack()
 
     def handle_game_request(self):
         self.after(0, self.ask_game_accept)
@@ -107,13 +110,16 @@ class MathHurdleApp(ctk.CTk):
         enter_ip_frame.pack(fill="both", expand=True, padx=50, pady=50)
 
         label = ctk.CTkLabel(enter_ip_frame, text="Enter Opponent's IP Address:", font=("Arial", 22))
-        label.pack(pady=(20, 10))
+        label.pack(pady=(30, 15))
 
-        self.ip_entry = ctk.CTkEntry(enter_ip_frame, font=("Arial", 20))
-        self.ip_entry.pack(pady=(0, 20))
+        self.ip_entry = ctk.CTkEntry(enter_ip_frame, font=("Arial", 20), width=250)
+        self.ip_entry.pack(pady=(0, 30))
 
         send_btn = ctk.CTkButton(enter_ip_frame, text="Connect", command=self.send_connection_request)
-        send_btn.pack(pady=20)
+        send_btn.pack(pady=(0, 20))
+
+        go_back_btn = ctk.CTkButton(enter_ip_frame, text="Go Back", command=self.show_main_menu)
+        go_back_btn.pack()
 
     def send_connection_request(self):
         self.client_ip = self.ip_entry.get().strip()
@@ -164,6 +170,9 @@ class MathHurdleApp(ctk.CTk):
         start_btn = ctk.CTkButton(start_frame, text="Start", font=("Arial", 24), command=self.start_game)
         start_btn.pack(pady=20)
 
+        go_back_btn = ctk.CTkButton(start_frame, text="Go Back", command=self.show_main_menu)
+        go_back_btn.pack()
+
     def start_game(self):
         self.core.send_game_start()
 
@@ -174,6 +183,7 @@ class MathHurdleApp(ctk.CTk):
 
         game = Game(root, self.username, self.is_server, self.core)
         self.core.on_game_data_callback = game.receive_game_data
+        self.core._on_notice_data_callback = game.receive_notice_data
         root.mainloop()
 
     def clear_widgets(self):
