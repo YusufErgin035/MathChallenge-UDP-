@@ -47,7 +47,7 @@ class Game:
         self.create_game_screen()
         self.show_countdown()
 
-    def receive_notice_data(self, core):
+    def receive_notice_data(self):
         print("Rakip oyundan çıktı..")
         self.force_to_exit()
 

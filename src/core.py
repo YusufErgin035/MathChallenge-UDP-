@@ -69,7 +69,8 @@ class Core:
                     self.on_game_data_callback(is_answer, question, answer)
             elif status_value == -1 and func_value == -1:
                 print("Opponent leaving")
-
+                if self.on_notice_data_callback:
+                    self.on_notice_data_callback()
             else:
                 print(f"[{addr[0]}:{addr[1]}]: {data}")
         except:
