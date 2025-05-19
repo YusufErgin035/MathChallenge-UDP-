@@ -3,6 +3,7 @@ import socket
 import threading
 from core import Core
 from tkinter import messagebox
+from game import Game
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("green")
@@ -18,6 +19,7 @@ class MathHurdleApp(ctk.CTk):
 
         self.username = None
         self.client_ip = None
+        self.is_server = None
         self.core = Core()
         self.core.on_game_request_callback = self.handle_game_request  # 🔗 Bağlantı kuruldu
 
@@ -72,6 +74,7 @@ class MathHurdleApp(ctk.CTk):
 
     def show_ip_screen(self):
         self.clear_widgets()
+        self.is_server = True
 
         ip_frame = ctk.CTkFrame(self)
         ip_frame.pack(fill="both", expand=True, padx=50, pady=50)
@@ -95,6 +98,7 @@ class MathHurdleApp(ctk.CTk):
 
     def enter_ip_screen(self):
         self.clear_widgets()
+        self.is_server = False
 
         enter_ip_frame = ctk.CTkFrame(self)
         enter_ip_frame.pack(fill="both", expand=True, padx=50, pady=50)
@@ -138,8 +142,10 @@ class MathHurdleApp(ctk.CTk):
         while not self.core.is_game_accepted:
             pass
 
-        # Oyun Bekleme Ekranına Atar
-        print("Oyun başlatılma bekleniyor")
+        while not self.core.is_game_started:
+            pass
+
+        self.start_game()
 
     def show_start_screen(self):
         self.clear_widgets()
@@ -152,8 +158,19 @@ class MathHurdleApp(ctk.CTk):
         label = ctk.CTkLabel(start_frame, text="Ready to Start!", font=("Arial", 28))
         label.pack(pady=40)
 
-        start_btn = ctk.CTkButton(start_frame, text="Start", font=("Arial", 24))
+        start_btn = ctk.CTkButton(start_frame, text="Start", font=("Arial", 24), command=self.start_game)
         start_btn.pack(pady=20)
+
+    def start_game(self):
+        self.core.send_game_start()
+        
+        root = tk.Tk()
+        root.title("Math Hurdle - Game")
+        root.geometry("600x800")
+        root.configure(bg="black")
+
+        Game(root, self.username, self.is_server)
+        root.mainloop()
 
     def clear_widgets(self):
         for widget in self.winfo_children():
