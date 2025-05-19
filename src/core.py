@@ -65,8 +65,8 @@ class Core:
                 question = msg.get("question")
                 answer = msg.get("answer")
                 print("Veri alındı:", is_answer, question, answer)
-                self.on_game_data_callback(is_answer, question, answer)
-
+                if self.on_game_data_callback:
+                    self.on_game_data_callback(is_answer, question, answer)
             else:
                 print(f"[{addr[0]}:{addr[1]}]: {data}")
         except:

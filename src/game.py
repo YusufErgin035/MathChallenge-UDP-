@@ -40,6 +40,7 @@ class Game:
         self.answer_buttons = []
         self.correct_answer = None
         self.core = core
+        self.core.on_game_data_callback = self.receive_game_data
 
         self.create_game_screen()
         self.show_countdown()
@@ -48,7 +49,7 @@ class Game:
         print("Karşıdan veri geldi:", is_answer, question, answer)
         if is_answer:
             self.handle_answer(answer,True)
-        else:
+        if not is_answer and question:
             self.question = question
             self.answer = answer
             self.generate_question(self.is_server)
@@ -59,7 +60,7 @@ class Game:
         self.status_label = tk.Label(self.root, text="", fg="white", bg="black", font=("Helvetica", 24))
         self.status_label.pack(pady=20)
 
-        self.score_label = tk.Label(self.root, text="Score: 0 - 0", fg="white", bg="black", font=("Helvetica", 18))
+        self.score_label = tk.Label(self.root,text=f"Score: {self.score['me']} - {self.score['opponent']}",fg="white", bg="black",font=("Helvetica", 18))
         self.score_label.pack(pady=10)
 
         self.question_label = tk.Label(self.root, text="", fg="white", bg="black", font=("Helvetica", 22))
@@ -88,24 +89,19 @@ class Game:
             count_label.config(text=f"Question {self.current_question}")
             time.sleep(1)
             self.create_game_screen()
+            self.has_answered = False
             self.generate_question(self.is_server)
 
         threading.Thread(target=countdown).start()
 
     def generate_question(self,isHost):
         if isHost:
-            processtime = random.randint(2, 4)
-            question = str(random.randint(1, 20))
-            for _ in range(processtime):
-                randprocs = random.randint(1, 3)
-                var = random.randint(1, 20)
-                match randprocs:
-                    case 1:
-                        question += f" + {var}"
-                    case 2:
-                        question += f" - {var}"
-                    case 3:
-                        question += f" * {var}"
+            expression_parts = [str(random.randint(1, 20))]
+            for _ in range(random.randint(2, 4)):
+                op = random.choice(['+', '-', '*'])
+                num = str(random.randint(1, 20))
+                expression_parts.extend([op, num])
+            question = ' '.join(expression_parts)
             self.correct_answer = eval(question)
             self.question_label.config(text=question)
 
@@ -119,9 +115,13 @@ class Game:
             random.shuffle(options)
             send_data(self.core,question,False,options)
         else:
+            if not self.question or not self.answer:
+                print("Soru veya cevap listesi eksik.")
+                return
             self.correct_answer = eval(self.question)
             options = list(self.answer)
             random.shuffle(options)
+            self.question_label.config(text=self.question)
 
         for btn in self.answer_buttons:
             btn.destroy()
@@ -147,31 +147,25 @@ class Game:
         self.has_answered = True
 
         if not isOpponent:
-            if selected_answer == self.correct_answer:
-                self.score["me"] += 1
-                self.announce_result(f"{self.player_name} has given the correct answer.")
-                send_data(self.core, None, True, selected_answer)
-            else:
-                self.score["opponent"] += 1
-                self.announce_result(f"{self.player_name} has given a wrong answer.")
-                send_data(self.core, None, True, selected_answer)
+            is_correct = selected_answer == self.correct_answer
+            self.score["me" if is_correct else "opponent"] += 1
+            send_data(self.core, None, True, selected_answer)
+            message = f"{self.player_name} has given {'the correct' if is_correct else 'a wrong'} answer."
         else:
-            if selected_answer == self.correct_answer:
-                self.score["opponent"] += 1
-                self.announce_result(f"{self.opponent_name} has given the correct answer.")
-            else:
-                self.score["me"] += 1
-                self.announce_result(f"{self.opponent_name} has given the wrong answer.")
-        self.update_score()
+            is_correct = selected_answer == self.correct_answer
+            self.score["opponent" if is_correct else "me"] += 1
+            message = f"{self.opponent_name} has given {'the correct' if is_correct else 'a wrong'} answer."
+
+        self.announce_result(message)
 
         if self.score["me"] == self.max_score:
-            self.end_game("Victory")
+            self.root.after(2000, lambda: self.end_game("Victory"))
         elif self.score["opponent"] == self.max_score:
-            self.end_game("Lose")
+            self.root.after(2000, lambda: self.end_game("Lose"))
         else:
             self.current_question += 1
             self.has_answered = False
-            self.show_countdown()
+            self.root.after(2000, self.show_countdown)
 
     def update_score(self):
         self.score_label.config(text=f"Score: {self.score['me']} - {self.score['opponent']}")
