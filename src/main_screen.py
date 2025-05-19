@@ -4,6 +4,7 @@ import threading
 from core import Core
 from tkinter import messagebox
 from game import Game
+import tkinter as tk
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("green")
@@ -163,7 +164,7 @@ class MathHurdleApp(ctk.CTk):
 
     def start_game(self):
         self.core.send_game_start()
-        
+
         root = tk.Tk()
         root.title("Math Hurdle - Game")
         root.geometry("600x800")
