@@ -1,4 +1,4 @@
-from udp_module import UDPConnection
+from src.udp_module import UDPConnection
 import socket
 import json
 import random
