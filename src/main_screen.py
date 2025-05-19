@@ -137,6 +137,9 @@ class MathHurdleApp(ctk.CTk):
         label = ctk.CTkLabel(waiting_frame, text="Waiting to be connected...", font=("Arial", 24))
         label.place(relx=0.5, rely=0.5, anchor="center")
 
+        go_back_btn = ctk.CTkButton(waiting_frame, text="Go Back", command=self.show_main_menu)
+        go_back_btn.pack()
+
         threading.Thread(target=self.client_simulate_wait_and_proceed, daemon=True).start()
 
     def client_simulate_wait_and_proceed(self):
@@ -183,7 +186,7 @@ class MathHurdleApp(ctk.CTk):
 
         game = Game(root, self.username, self.is_server, self.core)
         self.core.on_game_data_callback = game.receive_game_data
-        self.core._on_notice_data_callback = game.receive_notice_data
+        self.core.on_notice_data_callback = game.receive_notice_data
         root.mainloop()
 
     def clear_widgets(self):

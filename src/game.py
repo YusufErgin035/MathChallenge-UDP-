@@ -8,7 +8,7 @@ def send_data(core,question_data,isAnswer,answer):
     data = {
         "status": 0,
         "func": 3,
-        "msg_id": random.randint(1000, 9999),
+        "msg_id": random.randint(10000, 99999),
         "msg": {
             "isAnswer": isAnswer,
             "question": question_data,
@@ -27,7 +27,6 @@ def notify_opponent_disconnected(core):
 
 class Game:
     def __init__(self, root, player_name, is_server,core):
-        self.receive_notice_data = self.receive_notice_data
         self.root = root
         self.player_name = player_name
         self.is_server = is_server
@@ -42,14 +41,17 @@ class Game:
         self.correct_answer = None
         self.core = core
         self.core.on_game_data_callback = self.receive_game_data
+        self.core.on_notice_data_callback = self.receive_notice_data
 
-        self.root.protocol("WM_DELETE_WINDOW", self.exit_game())
         self.create_game_screen()
         self.show_countdown()
 
     def receive_notice_data(self):
         print("Rakip oyundan çıktı..")
-        self.force_to_exit()
+        try:
+            self.root.after(0, self.force_to_exit)
+        except Exception as e:
+            print("GUI erişilemedi:", e)
 
     def receive_game_data(self, is_answer, question, answer):
         print("Karşıdan veri geldi:", is_answer, question, answer)
@@ -198,12 +200,17 @@ class Game:
         self.clear_screen()
         label = tk.Label(self.root, text="Opponent has left. You win!", fg="white", bg="black", font=("Helvetica", 24))
         label.pack(pady=100)
-        self.exit_button = tk.Button(self.root, text="Exit Game", bg="red", fg="white", font=("Helvetica", 14),command=self.root.destroy)
+
+        self.exit_button = tk.Button(self.root, text="Exit Game", bg="red", fg="white", font=("Helvetica", 14),command=lambda: self.root.after(100, self.root.destroy))
         self.exit_button.pack(pady=30)
 
     def exit_game(self):
         self.clear_screen()
         notify_opponent_disconnected(self.core)
-        self.root.destroy()
+
+        self.status_label = tk.Label(self.root, text="Exiting game...", fg="white", bg="black", font=("Helvetica", 24))
+        self.status_label.pack(pady=100)
+
+        self.root.after(300, self.root.destroy)
 
 
